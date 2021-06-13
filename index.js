@@ -1,7 +1,6 @@
 'use strict';
 const fs = require('fs');
 const async_hooks = require('async_hooks');
-const AWS = require('aws-sdk');
 
 try {
     Object.assign(process.env, Object.assign(JSON.parse(fs.readFileSync('/var/secrets/secrets.json', 'utf8')), process.env));
@@ -22,7 +21,10 @@ global.log = require('pino')({
     },
 });
 
-if (process.env.S3_ENDPOINT) AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
+if (process.env.S3_ENDPOINT) {
+    const AWS = require('aws-sdk');
+    AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
+}
 
 const contexts = {};
 
