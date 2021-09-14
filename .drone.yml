@@ -1,0 +1,51 @@
+kind: pipeline
+type: kubernetes
+name: publish_npm_package
+
+trigger:
+    branch:
+        - master
+    event:
+        - push
+steps:
+    - name: Create master tag
+      image: node:14
+      commands:
+          - npm version minor -m "%s [CI SKIP]"
+          - VERSION=$(node -e "console.log(require('./package.json').version)")
+          - echo $VERSION
+          - git push origin "v$VERSION"
+      when:
+          branch:
+              - master
+    - name: Create dev tag
+      image: node:14
+      commands:
+          - npm version patch -m "%s [CI SKIP]"
+      when:
+          branch:
+              - dev
+    - name: Publish package
+      image: node:14
+      commands:
+          - VERSION=$(node -e "console.log(require('./package.json').version)")
+          - echo "//npm.pkg.github.com/:_authToken=$${GIT_PAT}" > ~/.npmrc
+          - echo "registry=https://npm.pkg.github.com/letsdeel" >> ~/.npmrc
+          - echo "Publishing ${CI_COMMIT_BRANCH,,} $VERSION"
+          - npm publish --tag ${CI_COMMIT_BRANCH,,}
+          - git push --tags --set-upstream origin ${CI_COMMIT_BRANCH,,}
+      environment:
+          GIT_PAT:
+              from_secret: git_pat
+---
+kind: secret
+name: slack_webhook_deployment
+get:
+    path: drone
+    name: slack_webhook_deployment
+---
+kind: secret
+name: git_pat
+get:
+    path: drone
+    name: git_pat

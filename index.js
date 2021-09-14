@@ -42,4 +42,6 @@ Object.defineProperty(global, 'currentContext', {
     },
 });
 
-global.Sentry = require('@sentry/node');
+module.exports = {
+    Sentry: require('@sentry/node'),
+}
