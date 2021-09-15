@@ -41,5 +41,3 @@ Object.defineProperty(global, 'currentContext', {
         return contexts[asyncId] || (contexts[asyncId] = {});
     },
 });
-
-global.Sentry = require('@sentry/node');
