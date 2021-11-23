@@ -1,4 +1,5 @@
 'use strict';
+require('axios/lib/core/createError');
 const fs = require('fs');
 const async_hooks = require('async_hooks');
 
@@ -13,12 +14,8 @@ global.log = require('pino')({
     level: String(process.env.LOG_LEVEL || 'warn').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
     prettyPrint: global.__DEV__,
-    hooks: {
-        logMethod(args, method) {
-            Object.assign(args[0], {requestId: global.currentContext.requestId, cronTask: global.currentContext.cronTask});
-            return method.apply(this, args);
-        },
-    },
+    mixin: () => ({requestId: global.currentContext.requestId, cronTask: global.currentContext.cronTask}),
+    base: undefined,
 });
 
 if (process.env.S3_ENDPOINT) {
@@ -43,3 +40,20 @@ Object.defineProperty(global, 'currentContext', {
 });
 
 global.Sentry = require('@sentry/node');
+
+process.on('uncaughtException', (err, origin) => {
+    err.origin = origin;
+    Sentry.captureException(err);
+    log.fatal(err);
+});
+
+for (const m of module.children) {
+    if (!m.filename.endsWith('node_modules/axios/lib/core/createError.js')) continue;
+    const enhanceError = require('axios/lib/core/enhanceError');
+    m.exports = function createError(message, config, code, request, response) {
+        const error = enhanceError(new Error(message), config, code, request, response);
+        Error.captureStackTrace(error, createError);
+        return error;
+    };
+    break;
+}
