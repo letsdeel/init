@@ -18,13 +18,6 @@ global.log = require('pino')({
         cronTask: process.env.ASYNC_CONTEXT ? global.asyncContext?.cronTask : global.currentContext?.cronTask,
     }),
     base: undefined,
-    ...(global.__DEV__
-        ? {
-              transport: {
-                  target: 'pino-pretty',
-              },
-          }
-        : {}),
 });
 
 if (process.env.S3_ENDPOINT) {
