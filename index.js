@@ -13,9 +13,18 @@ global.__DEV__ = process.env.NODE_ENV == 'development';
 global.log = require('pino')({
     level: String(process.env.LOG_LEVEL || 'warn').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
-    prettyPrint: global.__DEV__,
-    mixin: () => ({requestId: global.currentContext.requestId, cronTask: global.currentContext.cronTask}),
+    mixin: () => ({
+        requestId: global.asyncContext?.requestId || global.currentContext?.requestId,
+        cronTask: global.asyncContext?.cronTask || global.currentContext?.cronTask,
+    }),
     base: undefined,
+    ...(global.__DEV__
+        ? {
+              transport: {
+                  target: 'pino-pretty',
+              },
+          }
+        : {}),
 });
 
 if (process.env.S3_ENDPOINT) {
@@ -24,6 +33,7 @@ if (process.env.S3_ENDPOINT) {
 }
 
 const contexts = {};
+const context = new async_hooks.AsyncLocalStorage();
 
 async_hooks
     .createHook({
@@ -36,6 +46,12 @@ Object.defineProperty(global, 'currentContext', {
     get() {
         const asyncId = async_hooks.executionAsyncId();
         return contexts[asyncId] || (contexts[asyncId] = {});
+    },
+});
+
+Object.defineProperty(global, 'asyncContext', {
+    get() {
+        return context.getStore() || context.run.bind(context);
     },
 });
 
@@ -57,3 +73,5 @@ for (const m of module.children) {
     };
     break;
 }
+
+module.exports = {context};
