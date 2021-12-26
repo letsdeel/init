@@ -1,7 +1,7 @@
 'use strict';
 require('axios/lib/core/createError');
 const fs = require('fs');
-const async_hooks = require('async_hooks');
+const {AsyncLocalStorage} = require('async_hooks');
 
 try {
     Object.assign(process.env, Object.assign(JSON.parse(fs.readFileSync('/var/secrets/secrets.json', 'utf8')), process.env));
@@ -14,8 +14,8 @@ global.log = require('pino')({
     level: String(process.env.LOG_LEVEL || 'warn').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
     mixin: () => ({
-        requestId: global.asyncContext?.requestId || global.currentContext?.requestId,
-        cronTask: global.asyncContext?.cronTask || global.currentContext?.cronTask,
+        requestId: global.asyncContext?.requestId,
+        cronTask: global.asyncContext?.cronTask,
     }),
     base: undefined,
     ...(global.__DEV__
@@ -32,22 +32,7 @@ if (process.env.S3_ENDPOINT) {
     AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
 }
 
-const contexts = {};
-const context = new async_hooks.AsyncLocalStorage();
-
-async_hooks
-    .createHook({
-        init: (asyncId, type, triggerAsyncId) => contexts[triggerAsyncId] && (contexts[asyncId] = contexts[triggerAsyncId]),
-        destroy: (asyncId) => delete contexts[asyncId],
-    })
-    .enable();
-
-Object.defineProperty(global, 'currentContext', {
-    get() {
-        const asyncId = async_hooks.executionAsyncId();
-        return contexts[asyncId] || (contexts[asyncId] = {});
-    },
-});
+const context = new AsyncLocalStorage();
 
 Object.defineProperty(global, 'asyncContext', {
     get() {
