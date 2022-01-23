@@ -2,6 +2,7 @@
 require('axios/lib/core/createError');
 const fs = require('fs');
 const async_hooks = require('async_hooks');
+const AWS = require('aws-sdk');
 
 try {
     Object.assign(process.env, Object.assign(JSON.parse(fs.readFileSync('/var/secrets/secrets.json', 'utf8')), process.env));
@@ -11,7 +12,7 @@ try {
 
 global.__DEV__ = process.env.NODE_ENV == 'development';
 global.log = require('pino')({
-    level: String(process.env.LOG_LEVEL || 'warn').toLowerCase(),
+    level: String(process.env.LOG_LEVEL || 'info').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
     mixin: () => ({
         requestId: process.env.ASYNC_CONTEXT ? global.asyncContext?.requestId : global.currentContext?.requestId,
@@ -20,19 +21,13 @@ global.log = require('pino')({
     base: undefined,
 });
 
-if (process.env.S3_ENDPOINT) {
-    const AWS = require('aws-sdk');
-    AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
-}
+AWS.config.logger = {log: (log) => global.log.info(log)};
+
+if (process.env.S3_ENDPOINT) AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
 
 if (process.env.ASYNC_CONTEXT) {
     const context = new async_hooks.AsyncLocalStorage();
-
-    Object.defineProperty(global, 'asyncContext', {
-        get() {
-            return context.getStore() || context.run.bind(context);
-        },
-    });
+    Object.defineProperty(global, 'asyncContext', {get: () => context.getStore() || context.run.bind(context)});
 } else {
     const contexts = {};
 
@@ -57,6 +52,7 @@ process.on('uncaughtException', (err, origin) => {
     err.origin = origin;
     Sentry.captureException(err);
     log.fatal(err);
+    process.exit(1);
 });
 
 for (const m of module.children) {
