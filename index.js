@@ -14,6 +14,7 @@ global.__DEV__ = process.env.NODE_ENV == 'development';
 global.log = require('pino')({
     level: String(process.env.LOG_LEVEL || 'info').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
+    messageKey: 'message'
     mixin: () => ({
         requestId: process.env.ASYNC_CONTEXT ? global.asyncContext?.requestId : global.currentContext?.requestId,
         cronTask: process.env.ASYNC_CONTEXT ? global.asyncContext?.cronTask : global.currentContext?.cronTask,
