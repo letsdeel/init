@@ -18,6 +18,7 @@
     "peerDependencies": {
         "aws-sdk": "*",
         "axios": "*",
+        "dd-trace": "*",
         "pino": "*",
         "pino-pretty": "*",
         "@sentry/node": "*",

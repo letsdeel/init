@@ -47,6 +47,8 @@ if (process.env.ASYNC_CONTEXT) {
     });
 }
 
+if (process.env.DD_TRACE_ENABLED) global.tracer = require('dd-trace').init();
+
 global.Sentry = require('@sentry/node');
 
 process.on('uncaughtException', (err, origin) => {
