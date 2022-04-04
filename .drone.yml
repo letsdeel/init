@@ -1,0 +1,47 @@
+kind: pipeline
+type: kubernetes
+name: Init
+
+node_selector:
+  eks.amazonaws.com/nodegroup: automation
+trigger:
+  event:
+    - push
+
+steps:
+  - name: build npm package for init
+    pull: if-not-exists
+    image: 221581667315.dkr.ecr.eu-west-1.amazonaws.com/ecr-public/bitnami/node:16
+    commands:
+#      - echo "//npm.pkg.github.com/:_authToken=$${NODE_AUTH_TOKEN}" > ~/.npmrc
+#      - echo "registry=https://npm.pkg.github.com/letsdeel" >> ~/.npmrc
+      - npm install
+  - name: publish package to codeartifact
+    pull: if-not-exists
+    image: 221581667315.dkr.ecr.eu-west-1.amazonaws.com/deel-devops/nodeawscli:16.1
+    commands:
+      - aws codeartifact login --tool npm --repository npm-dev --domain npm --domain-owner 221581667315
+      - echo "registry=https://npm-221581667315.d.codeartifact.eu-west-1.amazonaws.com/npm/npm-dev/" > .npmrc
+      - echo "npm-221581667315.d.codeartifact.eu-west-1.amazonaws.com/npm/npm-dev/:always-auth=true" >> .npmrc
+      - echo "npm-221581667315.d.codeartifact.eu-west-1.amazonaws.com/npm/npm-dev/:_authToken=${CODEARTIFACT_AUTH_TOKEN}" >> .npmrc
+      - npm publish
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_REGION: eu-west-1
+      CODEARTIFACT_AUTH_TOKEN:
+        from_secret: CODEARTIFACT_AUTH_TOKEN
+---
+kind: secret
+name: AWS_ACCESS_KEY_ID
+get:
+  path: drone
+  name: aws-access-key-id
+---
+kind: secret
+name: AWS_SECRET_ACCESS_KEY
+get:
+  path: drone
+  name: aws-secret-access-key
