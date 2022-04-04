@@ -1,6 +1,6 @@
 {
     "name": "@letsdeel/init",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Init routines",
     "main": "index.js",
     "engines": {
