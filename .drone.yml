@@ -33,6 +33,9 @@ steps:
       AWS_REGION: eu-west-1
       CODEARTIFACT_AUTH_TOKEN:
         from_secret: CODEARTIFACT_AUTH_TOKEN
+    when:
+      branch:
+        - master
 ---
 kind: secret
 name: AWS_ACCESS_KEY_ID
