@@ -31,7 +31,7 @@ steps:
     commands:
       - git remote add gh-origin https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
       #- git push gh-origin HEAD:${GITHUB_REF} --tags
-      #- GIT_TERMINAL_PROMPT=0 git push --set-upstream origin ${CI_COMMIT_BRANCH}
+      - git push --set-upstream origin ${CI_COMMIT_BRANCH}
     environment:
       NODE_AUTH_TOKEN:
         from_secret: git_pat
