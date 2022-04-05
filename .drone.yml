@@ -28,7 +28,7 @@ steps:
     image: 221581667315.dkr.ecr.eu-west-1.amazonaws.com/deel-devops/nodeawscli:16.1
     commands:
       - git remote -v
-      - git config --global url."https://$${NODE_AUTH_TOKEN}:github".insteadOf https://github
+      - git config --global url."https://$${NODE_AUTH_TOKEN}@github".insteadOf https://github
       - git remote -v
       - git push --tags
     environment:
