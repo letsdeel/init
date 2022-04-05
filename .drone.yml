@@ -9,6 +9,15 @@ trigger:
     - push
 
 steps:
+  - name: Bump patch version
+    pull: if-not-exists
+    image: 221581667315.dkr.ecr.eu-west-1.amazonaws.com/deel-devops/nodeawscli:16.1
+    commands:
+      - npm version patch --commit-hooks=false -m "[CI SKIP] Automatically bumped version to %s" --force
+
+    environment:
+      NODE_AUTH_TOKEN:
+        from_secret: git_pat
   - name: build npm package for init
     pull: if-not-exists
     image: 221581667315.dkr.ecr.eu-west-1.amazonaws.com/ecr-public/bitnami/node:16
