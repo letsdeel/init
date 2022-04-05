@@ -16,8 +16,7 @@ steps:
       - npm version patch --commit-hooks=false -m "[CI SKIP] Automatically bumped version to %s" --force
     when:
       branch:
-        exclude:
-          - "dev"
+        - "dev"
     environment:
       NODE_AUTH_TOKEN:
         from_secret: git_pat
@@ -29,8 +28,7 @@ steps:
       - npm version patch --commit-hooks=false -m "[CI SKIP] Automatically bumped version to %s" --force
     when:
       branch:
-        exclude:
-          - "master"
+        - "master"
     environment:
       NODE_AUTH_TOKEN:
         from_secret: git_pat
