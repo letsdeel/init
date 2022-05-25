@@ -54,7 +54,7 @@ if (process.env.LIGHTRUN_SECRET) {
         metadata: {
             registration: {
                 displayName: process.env.DD_SERVICE,
-                tags: [process.env.DD_ENV],
+                tags: [`${process.env.DD_SERVICE}:${process.env.DD_ENV}`, process.env.DD_SERVICE, process.env.DD_ENV],
             },
         },
     });
