@@ -48,6 +48,17 @@ if (process.env.ASYNC_CONTEXT) {
 }
 
 if (process.env.DD_TRACE_ENABLED) global.tracer = require('dd-trace').init();
+if (process.env.LIGHTRUN_SECRET) {
+    require('lightrun').start({
+        lightrunSecret: process.env.LIGHTRUN_SECRET,
+        metadata: {
+            registration: {
+                displayName: process.env.DD_SERVICE,
+                tags: [process.env.DD_ENV],
+            },
+        },
+    });
+}
 
 global.Sentry = require('@sentry/node');
 

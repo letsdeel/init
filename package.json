@@ -12,13 +12,14 @@
     "license": "ISC",
     "devDependencies": {
         "babel-eslint": "^10.1.0",
-        "eslint": "^8.5.0",
+        "eslint": "^8.16.0",
         "eslint-plugin-node": "^11.1.0"
     },
     "peerDependencies": {
         "aws-sdk": "*",
         "axios": "*",
         "dd-trace": "*",
+        "lightrun": "*",
         "pino": "*",
         "pino-pretty": "*",
         "@sentry/node": "*",
