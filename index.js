@@ -1,5 +1,4 @@
 'use strict';
-require('axios/lib/core/createError');
 const fs = require('fs');
 const async_hooks = require('async_hooks');
 const AWS = require('aws-sdk');
@@ -24,12 +23,13 @@ global.log = require('pino')({
 
 AWS.config.logger = {log: (log) => global.log.info(log)};
 
-if (process.env.S3_ENDPOINT) AWS.config.update({endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'});
+if (process.env.S3_ENDPOINT) AWS.config.update({s3: {endpoint: new AWS.Endpoint(process.env.S3_ENDPOINT), s3ForcePathStyle: true, signatureVersion: 'v4'}});
 
 if (process.env.ASYNC_CONTEXT) {
     const context = new async_hooks.AsyncLocalStorage();
     Object.defineProperty(global, 'asyncContext', {get: () => context.getStore() || context.run.bind(context)});
 } else {
+    global.log.error('DEPRECATED: Please use ASYNC_CONTEXT environment variable to enable async context support');
     const contexts = {};
 
     async_hooks
@@ -68,14 +68,3 @@ process.on('uncaughtException', (err, origin) => {
     log.fatal(err);
     process.exit(1);
 });
-
-for (const m of module.children) {
-    if (!m.filename.endsWith('node_modules/axios/lib/core/createError.js')) continue;
-    const enhanceError = require('axios/lib/core/enhanceError');
-    m.exports = function createError(message, config, code, request, response) {
-        const error = enhanceError(new Error(message), config, code, request, response);
-        Error.captureStackTrace(error, createError);
-        return error;
-    };
-    break;
-}
