@@ -47,6 +47,17 @@ if (process.env.ASYNC_CONTEXT) {
     });
 }
 
+(() => {
+    const {on} = process;
+    process.on = function (signal) {
+        if (signal.startsWith('SIG')) {
+            const err = new Error(`new signal handler: ${signal}`);
+            log.error(err);
+        }
+        return on.apply(this, arguments);
+    };
+})();
+
 if (process.env.DD_TRACE_ENABLED) global.tracer = require('dd-trace').init();
 if (process.env.LIGHTRUN_SECRET) {
     require('lightrun').start({
