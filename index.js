@@ -1,4 +1,7 @@
 'use strict';
+// this should the top level require, so DD could instrument the libraries
+if (process.env.DD_TRACE_ENABLED) global.tracer = require('dd-trace').init();
+
 const fs = require('fs');
 const async_hooks = require('async_hooks');
 const AWS = require('aws-sdk');
@@ -58,7 +61,6 @@ if (process.env.ASYNC_CONTEXT) {
     };
 })();
 
-if (process.env.DD_TRACE_ENABLED) global.tracer = require('dd-trace').init();
 if (process.env.LIGHTRUN_SECRET) {
     require('lightrun').start({
         lightrunSecret: process.env.LIGHTRUN_SECRET,
