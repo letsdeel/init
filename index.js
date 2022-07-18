@@ -9,10 +9,10 @@ const AWS = require('aws-sdk');
 try {
     Object.assign(process.env, Object.assign(JSON.parse(fs.readFileSync('/var/secrets/secrets.json', 'utf8')), process.env));
 } catch (err) {
-    if (err.code != 'ENOENT') throw err;
+    if (err.code !== 'ENOENT') throw err;
 }
 
-global.__DEV__ = process.env.NODE_ENV == 'development';
+global.__DEV__ = process.env.NODE_ENV === 'development';
 global.log = require('pino')({
     level: String(process.env.LOG_LEVEL || 'info').toLowerCase(),
     formatters: {level: (level) => ({level: level.toUpperCase()})},
