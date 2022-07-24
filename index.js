@@ -53,6 +53,7 @@ if (process.env.ASYNC_CONTEXT) {
 (() => {
     const {on} = process;
     process.on = function (signal) {
+        if(process.env.TEST) return;
         if (signal.startsWith('SIG')) {
             const err = new Error(`new signal handler: ${signal}`);
             log.error(err);
